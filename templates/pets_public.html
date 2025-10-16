@@ -1,0 +1,7 @@
+<h2>Available Pets</h2>
+<a href="/">Home</a>
+<ul>
+{% for pet in pets %}
+<li>{{ pet.name }} - {{ pet.type }} - <img src="/static/uploads/{{ pet.photo }}" width="100"></li>
+{% endfor %}
+</ul>

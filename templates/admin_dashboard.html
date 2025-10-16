@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+<h2>Welcome, Admin!</h2>
+<a href="/logout">Logout</a>
+<h3>All Pet Requests:</h3>
+<ul>
+    {% for pet in pets %}
+    <li>
+        <strong>{{ pet.name }}</strong> by {{ pet.username }} - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }}
+        <br>Description: {{ pet.description }}
+        <br>Type: {{ pet.type }} - Status: {{ pet.status }}
+        {% if pet.photo %}
+            <br><img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}" width="100">
+        {% endif %}
+        {% if pet.status == 'Pending' %}
+            <br>
+            <a href="/update_pet/{{ pet.id }}/Accepted">Accept</a> |
+            <a href="/update_pet/{{ pet.id }}/Rejected">Reject</a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+</body>
+</html>
