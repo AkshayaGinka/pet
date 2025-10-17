@@ -1,28 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Dashboard</title>
+<meta charset="UTF-8">
+<title>Admin Dashboard - PetRescue</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+body {
+    background: url('{{ url_for('static', filename='images/admin_background.jpg') }}') no-repeat center center fixed;
+    background-size: cover;
+}
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>
 </head>
 <body>
-<h2>Welcome, Admin!</h2>
-<a href="/logout">Logout</a>
-<h3>All Pet Requests:</h3>
-<ul>
+
+<div class="container">
+    <h2>Welcome, Admin!</h2>
+    <a href="/logout">Logout</a>
+</div>
+
+<div class="section">
+    <h3>Manage Pets</h3>
+    <button onclick="showPets('Accepted')">Accepted Pets</button>
+    <button onclick="showPets('Pending')">Reported Pets</button>
+    <button onclick="showPets('Rejected')">Rejected Pets</button>
+</div>
+
+<div class="section" id="pets_container">
     {% for pet in pets %}
-    <li>
-        <strong>{{ pet.name }}</strong> by {{ pet.username }} - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }}
-        <br>Description: {{ pet.description }}
-        <br>Type: {{ pet.type }} - Status: {{ pet.status }}
+    <div class="pet-card" data-status="{{ pet.status }}">
+        <strong>{{ pet.name }}</strong> by {{ pet.username }} - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }}<br>
+        Description: {{ pet.description }}<br>
+        Type: {{ pet.type }} - Status: {{ pet.status }}<br>
         {% if pet.photo %}
-            <br><img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}" width="100">
+        <img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
         {% endif %}
         {% if pet.status == 'Pending' %}
-            <br>
-            <a href="/update_pet/{{ pet.id }}/Accepted">Accept</a> |
-            <a href="/update_pet/{{ pet.id }}/Rejected">Reject</a>
+        <br>
+        <a href="/update_pet/{{ pet.id }}/Accepted"><button>Accept</button></a>
+        <a href="/update_pet/{{ pet.id }}/Rejected"><button>Reject</button></a>
         {% endif %}
-    </li>
+        {% if pet.type == 'Adoption' and pet.status == 'Accepted' %}
+        <br><a href="/approve_adoption/{{ pet.id }}"><button>Approve Adoption Request</button></a>
+        {% endif %}
+    </div>
     {% endfor %}
-</ul>
+</div>
+
+<script>
+function showPets(status) {
+    let cards = document.querySelectorAll('.pet-card');
+    cards.forEach(card => {
+        if (card.getAttribute('data-status') === status) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+
 </body>
 </html>

@@ -1,23 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>User Dashboard</title>
+<meta charset="UTF-8">
+<title>User Dashboard - PetRescue</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+body {
+    background: url('{{ url_for('static', filename='images/user_background.jpg') }}') no-repeat center center fixed;
+    background-size: cover;
+}
+</style>
 </head>
 <body>
-<h2>Welcome, User!</h2>
-<a href="/add_pet">Add Pet</a> | <a href="/logout">Logout</a>
-<h3>Available Pets:</h3>
-<ul>
+
+<div class="container">
+    <h2>Welcome, {{ user.username }}!</h2>
+    <a href="/add_pet">Add Pet</a> | <a href="/logout">Logout</a>
+</div>
+
+<div class="section">
+    <h3>Available Pets</h3>
     {% for pet in pets %}
-    <li>
-        <strong>{{ pet.name }}</strong> - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }}
-        <br>Description: {{ pet.description }}
-        <br>Type: {{ pet.type }}
+    <div class="pet-card">
+        <strong>{{ pet.name }}</strong> - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }}<br>
+        Description: {{ pet.description }}<br>
+        Type: {{ pet.type }} - Status: {{ pet.status }}<br>
         {% if pet.photo %}
-            <br><img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}" width="100">
+        <img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
         {% endif %}
-    </li>
+        {% if pet.status == 'Accepted' and pet.type == 'Adoption' %}
+        <br><a href="/request_adoption/{{ pet.id }}"><button>Request for Adoption</button></a>
+        {% endif %}
+    </div>
     {% endfor %}
-</ul>
+</div>
+
+<!-- Contact Section -->
+<div class="section">
+    <h3>Contact Us</h3>
+    <p>Email: support@petrescue.com | Phone: +91 9876543210</p>
+</div>
+
 </body>
 </html>

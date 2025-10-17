@@ -1,29 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Add Pet</title>
+<meta charset="UTF-8">
+<title>Add Pet - PetRescue</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<h2>Add a Pet</h2>
-<form method="POST" enctype="multipart/form-data">
-    Name: <input type="text" name="name" required><br>
-    Breed: <input type="text" name="breed" required><br>
-    Age: <input type="number" name="age" required><br>
-    Gender: 
-    <select name="gender" required>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-    </select><br>
-    Type: 
-    <select name="type" required>
-        <option value="Lost">Lost</option>
-        <option value="Found">Found</option>
-        <option value="Adoption">Adoption</option>
-    </select><br>
-    Description: <textarea name="description"></textarea><br>
-    Photo: <input type="file" name="photo"><br>
-    <input type="submit" value="Add Pet">
-</form>
-<a href="/user_dashboard">Back to Dashboard</a>
+
+<div class="container">
+    <h2>Add a Pet</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Pet Name" required><br>
+        <input type="text" name="breed" placeholder="Breed" required><br>
+        <input type="number" name="age" placeholder="Age" required><br>
+        <select name="gender" required>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select><br>
+        <select name="type" required>
+            <option value="">Select Type</option>
+            <option value="Lost">Lost</option>
+            <option value="Found">Found</option>
+            <option value="Adoption">Adoption</option>
+        </select><br>
+        <textarea name="description" placeholder="Description"></textarea><br>
+        <input type="file" name="photo"><br>
+        <input type="submit" value="Add Pet">
+    </form>
+    <a href="/user_dashboard">Back to Dashboard</a>
+</div>
+
 </body>
 </html>

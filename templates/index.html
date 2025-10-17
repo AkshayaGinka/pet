@@ -1,11 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PetRescue Home</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta charset="UTF-8">
+<title>Pet Adoption & Rescue Management</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+    background: url('{{ url_for('static', filename='images/user_background.jpg') }}') no-repeat center center fixed;
+    background-size: cover;
+}
+
+/* Left about section */
+.about-section {
+    width: 35%;
+    background: rgba(255,255,255,0.9);
+    padding: 30px;
+    animation: slideInLeft 1s ease-out;
+}
+.about-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+.about-section p {
+    margin: 10px 0;
+    color: #555;
+}
+
+/* Right login section */
+.login-section {
+    width: 65%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.4);
+    padding: 30px;
+    animation: fadeIn 1s ease-in;
+}
+.login-section h1 {
+    color: #fff;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+/* Buttons for user/admin/register */
+button.action-btn {
+    width: 200px;
+    padding: 10px;
+    margin: 5px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+}
+button.action-btn:hover {
+    background: #ACB6E5;
+    color: #fff;
+}
+
+/* Login forms hidden initially */
+form.login-form {
+    display: none;
+    margin-top: 20px;
+    background: rgba(255,255,255,0.9);
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+}
+form.login-form input {
+    width: 90%;
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Rotating quotes */
+.quote {
+    color: #fff;
+    font-style: italic;
+    margin: 15px 0;
+    min-height: 40px;
+    font-size: 1rem;
+    text-align: center;
+    animation: fadeQuote 2s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); opacity: 0;}
+    to { transform: translateX(0); opacity: 1;}
+}
+@keyframes fadeIn {
+    from { opacity: 0;}
+    to { opacity: 1;}
+}
+@keyframes fadeQuote {
+    0%,100% {opacity: 0;}
+    50% {opacity: 1;}
+}
+</style>
 </head>
 <body>
-    <h1>Welcome to PetRescue</h1>
-    <a href="/register">Register</a> | <a href="/login">Login</a>
+
+<!-- Left About Section -->
+<div class="about-section">
+    <h2>About PetRescue</h2>
+    <p><strong>Our Mission:</strong> Help lost pets reunite with their owners and facilitate adoption of rescued pets.</p>
+    <p><strong>Objective:</strong> Create a seamless platform to report lost/found pets and manage adoption requests efficiently.</p>
+    <p><strong>Vision:</strong> A world where every pet has a safe home and caring owner.</p>
+</div>
+
+<!-- Right Login Section -->
+<div class="login-section">
+    <h1>Pet Adoption & Rescue Management</h1>
+    <div class="quote" id="quote">"Saving one animal won't change the world, but it will change the world for that one animal."</div>
+
+    <!-- Action Buttons -->
+    <div>
+        <button class="action-btn" onclick="showForm('user')">User Login</button>
+        <button class="action-btn" onclick="showForm('admin')">Admin Login</button>
+        <button class="action-btn" onclick="window.location.href='/register'">Register</button>
+    </div>
+
+    <!-- User Login Form -->
+    <form class="login-form" id="user-form" method="POST" action="/login_user">
+        <input type="email" name="email" placeholder="Email" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <input type="text" name="captcha" placeholder="Enter 1234" required><br>
+        <button type="submit">Login as User</button>
+    </form>
+
+    <!-- Admin Login Form -->
+    <form class="login-form" id="admin-form" method="POST" action="/login_admin">
+        <input type="email" name="email" placeholder="Admin Email" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <input type="text" name="captcha" placeholder="Enter 1234" required><br>
+        <button type="submit">Login as Admin</button>
+    </form>
+</div>
+
+<script>
+// Show the selected login form
+function showForm(type){
+    document.getElementById('user-form').style.display = (type=='user') ? 'block' : 'none';
+    document.getElementById('admin-form').style.display = (type=='admin') ? 'block' : 'none';
+}
+
+// Rotating quotes every 3 seconds
+const quotes = [
+    "\"Saving one animal won't change the world, but it will change the world for that one animal.\"",
+    "\"Until one has loved an animal, a part of one's soul remains unawakened.\"",
+    "\"Adopting a pet saves two lives — yours and theirs.\"",
+    "\"Animals are such agreeable friends—they ask no questions; they pass no criticisms.\"",
+    "\"Every pet deserves a loving home.\""
+];
+let index = 0;
+setInterval(() => {
+    document.getElementById('quote').innerText = quotes[index];
+    index = (index + 1) % quotes.length;
+}, 3000);
+</script>
+
 </body>
 </html>
