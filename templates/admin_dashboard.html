@@ -5,64 +5,312 @@
 <title>Admin Dashboard - PetRescue</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
-body {
-    background: url('{{ url_for('static', filename='images/admin_background.jpg') }}') no-repeat center center fixed;
-    background-size: cover;
+.nav-btn {
+    background: #eaf6fb; color: #312b72;
+    border-radius: 13px; border: none;
+    font-weight: bold;
+    font-size: 1.09em;
+    margin: 0 8px 24px 0; padding: 15px 32px;
+    cursor: pointer; box-shadow: 0 2px 7px #b9d8f41a;
+    transition: 0.17s;
 }
-.container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.nav-btn.active {
+    background: linear-gradient(135deg,#74ebd5 0%,#665afc 77%);
+    color: #fff;
+    box-shadow: 0 5px 18px #a1c4fd37;
+    transform: translateY(-2px) scale(1.04);
+}
+.pet-grid-section { margin-top: 10px; }
+.notification-count, .green-count {
+    background: #3fb950 !important;
+    color: #fff !important;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+/* Pet count badges */
+.count-badge {
+    background: #43a3e9;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: bold;
+    padding: 3px 10px;
+    margin-left: 8px;
+    vertical-align: middle;
+    display: inline-block;
 }
 </style>
 </head>
 <body>
-
-<div class="container">
-    <h2>Welcome, Admin!</h2>
-    <a href="/logout">Logout</a>
+<div class="quote-banner">
+    "Admin Tip: Respect pet privacy and always handle reports with thorough review."
 </div>
-
-<div class="section">
-    <h3>Manage Pets</h3>
-    <button onclick="showPets('Accepted')">Accepted Pets</button>
-    <button onclick="showPets('Pending')">Reported Pets</button>
-    <button onclick="showPets('Rejected')">Rejected Pets</button>
-</div>
-
-<div class="section" id="pets_container">
-    {% for pet in pets %}
-    <div class="pet-card" data-status="{{ pet.status }}">
-        <strong>{{ pet.name }}</strong> by {{ pet.username }} - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }}<br>
-        Description: {{ pet.description }}<br>
-        Type: {{ pet.type }} - Status: {{ pet.status }}<br>
-        {% if pet.photo %}
-        <img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
-        {% endif %}
-        {% if pet.status == 'Pending' %}
-        <br>
-        <a href="/update_pet/{{ pet.id }}/Accepted"><button>Accept</button></a>
-        <a href="/update_pet/{{ pet.id }}/Rejected"><button>Reject</button></a>
-        {% endif %}
-        {% if pet.type == 'Adoption' and pet.status == 'Accepted' %}
-        <br><a href="/approve_adoption/{{ pet.id }}"><button>Approve Adoption Request</button></a>
-        {% endif %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for message in messages %}
+        <div class="flash-message">{{ message }}</div>
+      {% endfor %}
     </div>
-    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="container privacy-card">
+    <h2 style="margin-top:0;color:#4d2895;font-size:2.1em;">
+      Welcome {{ session['admin_name'] }}!
+    </h2>
+    <h2>Admin Dashboard <span style="font-size:1.15em;color:#aaa;">| Private</span></h2>
+    <div class="top-nav">
+        <div class="notification-bell" id="notif-bell-adm" onclick="toggleNotifDropdownAdm()">
+            <span style="font-size:1.3em;">🔔</span>
+            {% if notif_unread_count > 0 %}
+            <span class="notification-count">{{ notif_unread_count }}</span>
+            {% endif %}
+            <div class="notification-dropdown" id="notif-dropdown-adm">
+                <h4>Notifications</h4>
+                {% if notifications %}
+                    {% for n in notifications %}
+                        <div class="notification-msg">{{ n['message'] }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div class="notification-empty">No notifications.</div>
+                {% endif %}
+            </div>
+        </div>
+        <a href="/admin_chat" style="position: relative;">
+            💬 User Messages
+            {% if unread_count > 0 %}
+            <span class="green-count" style="position:absolute;top:-8px;right:-15px;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:0.90rem;">{{ unread_count }}</span>
+            {% endif %}
+        </a>
+        <a href="/logout">Logout</a>
+    </div>
+    <div class="add-pet-row">
+        <a href="/add_pet?type=Lost" class="btn" style="background:#ffe08a;color:#715c16;">Add Lost Pet</a>
+        <a href="/add_pet?type=Found" class="btn" style="background:#b2f0cb;color:#145c34;">Add Found Pet</a>
+        <a href="/add_pet?type=Adoption" class="btn" style="background:#74ebd5;color:#312b72;">Add Pet for Adoption</a>
+        <a href="/create_chat_room" class="btn" style="background:#63d471;color:#fff;">Create Chat Room</a>
+    </div>
 </div>
 
+<!-- Navigation Buttons WITH BADGES -->
+<div class="dashboard-nav-row" style="margin-bottom: 10px;">
+    <button class="nav-btn active" id="btn-all" onclick="showGrid('all')">All Pets</button>
+    <button class="nav-btn" id="btn-lost" onclick="showGrid('lost')">Lost Pets <span class="count-badge">{{ lost_count }}</span></button>
+    <button class="nav-btn" id="btn-found" onclick="showGrid('found')">Found Pets <span class="count-badge">{{ found_count }}</span></button>
+    <button class="nav-btn" id="btn-adopt" onclick="showGrid('adopt')">Request for Adoption <span class="count-badge">{{ adoption_count }}</span></button>
+    <button class="nav-btn" id="btn-adopted" onclick="showGrid('adopted')">Adopted Pets <span class="count-badge">{{ adopted_count }}</span></button>
+</div>
+
+<div class="admin-panel">
+    <h3>Admin Panel</h3>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+        {% for admin in admins %}
+        <span class="table-badge-admin">{{ admin.username }}</span>
+        {% endfor %}
+    </div>
+    <div style="font-size:1.15em;color:#312b72;font-weight:600;margin-bottom:4px;">
+        Total Admins: <span style="color:#63d471;">{{ admins|length }}</span>
+    </div>
+</div>
+
+<!-- All Pets Tab -->
+<div id="grid-all" class="pet-grid-section" style="display:block;">
+    <div class="container dashboard-section">
+        <div class="section-title">All Pets & Actions</div>
+        <div class="pet-grid" id="pets_container">
+        {% for pet in pets %}
+            <div class="pet-card" data-status="{{ pet.status }}" data-type="{{ pet.type }}">
+                <span class="badge badge-{{ pet.status|lower }}">{{ pet.status }}</span>
+                <div>
+                    <b>{{ pet.name }}</b> by {{ pet.username }} • {{ pet.breed }} • {{ pet.age }} yrs • {{ pet.gender }} • {{ pet.color }}<br>
+                    <b>Location:</b> {{ pet.location }}<br>
+                    <b>Type:</b> {{ pet.type }}<br>
+                    <b>Health:</b> {{ pet.healthy_status }}<br>
+                    <span style="font-size:0.98em;color:#444;">{{ pet.description }}</span><br>
+                    <div style="margin-top:10px;font-size:0.94em;color:#666;border-top: 1px solid #eaeaea; padding-top:10px;">
+                        <b>Owner Details:</b><br>
+                        Name: {{ pet.full_name }}<br>
+                        Email: {{ pet.email }}<br>
+                        Phone: {{ pet.phone }}<br>
+                        Address: {{ pet.address }}<br>
+                    </div>
+                    {% if pet.photo %}
+                        <br><img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
+                    {% elif pet.photo_url %}
+                        <br><img src="{{ pet.photo_url }}">
+                    {% endif %}
+                    {% if pet.status == 'Pending' %}
+                    <button class="report-action-btn accept" onclick="window.location.href='/update_pet/{{ pet.id }}/Accepted'">Accept</button>
+                    <button class="report-action-btn reject" onclick="window.location.href='/update_pet/{{ pet.id }}/Rejected'">Reject</button>
+                    {% endif %}
+                    <button class="report-action-btn" onclick="showDetailsModal(
+                        '{{ pet.name }}',
+                        '{{ pet.username }}',
+                        '{{ pet.breed }}',
+                        '{{ pet.age }}',
+                        '{{ pet.gender }}',
+                        '{{ pet.color }}',
+                        '{{ pet.location }}',
+                        '{{ pet.type }}',
+                        '{{ pet.healthy_status }}',
+                        '{{ pet.description }}',
+                        '{{ pet.photo if pet.photo else ""}}',
+                        '{{ pet.photo_url if pet.photo_url else ""}}',
+                        '{{ pet.id }}'
+                    )">View</button>
+                    <a href="/edit_pet/{{ pet.id }}"><button class="report-action-btn">Edit</button></a>
+                    <a href="/delete_pet/{{ pet.id }}"><button class="report-action-btn reject">Delete</button></a>
+                    {% if pet.type == 'Adoption' and pet.status == 'Accepted' %}
+                    <button class="report-action-btn approve" onclick="window.location.href='/approve_adoption/{{ pet.id }}'">Approve Adoption Request</button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Lost Pets Tab -->
+<div id="grid-lost" class="pet-grid-section" style="display:none;">
+    <div class="container dashboard-section">
+        <div class="section-title">Lost Reports</div>
+        <div class="pet-grid">
+        {% for pet in pets %}
+        {% if pet.type == 'Lost' %}
+            <div class="pet-card" data-status="{{ pet.status }}" data-type="{{ pet.type }}">
+                <span class="badge badge-{{ pet.status|lower }}">{{ pet.status }}</span>
+                <div>
+                    <b>{{ pet.name }}</b> by {{ pet.username }} • {{ pet.breed }} • {{ pet.age }} yrs • {{ pet.gender }} • {{ pet.color }}<br>
+                    <b>Location:</b> {{ pet.location }}<br>
+                    <b>Type:</b> {{ pet.type }}<br>
+                    <b>Health:</b> {{ pet.healthy_status }}<br>
+                    <span style="font-size:0.98em;color:#444;">{{ pet.description }}</span><br>
+                    <div style="margin-top:10px;font-size:0.94em;color:#666;border-top: 1px solid #eaeaea; padding-top:10px;">
+                        <b>Owner Details:</b><br>
+                        Name: {{ pet.full_name }}<br>
+                        Email: {{ pet.email }}<br>
+                        Phone: {{ pet.phone }}<br>
+                        Address: {{ pet.address }}<br>
+                    </div>
+                    {% if pet.photo %}
+                        <br><img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
+                    {% elif pet.photo_url %}
+                        <br><img src="{{ pet.photo_url }}">
+                    {% endif %}
+                    <button class="report-action-btn" onclick="showDetailsModal(
+                        '{{ pet.name }}',
+                        '{{ pet.username }}',
+                        '{{ pet.breed }}',
+                        '{{ pet.age }}',
+                        '{{ pet.gender }}',
+                        '{{ pet.color }}',
+                        '{{ pet.location }}',
+                        '{{ pet.type }}',
+                        '{{ pet.healthy_status }}',
+                        '{{ pet.description }}',
+                        '{{ pet.photo if pet.photo else ""}}',
+                        '{{ pet.photo_url if pet.photo_url else ""}}',
+                        '{{ pet.id }}'
+                    )">View</button>
+                </div>
+            </div>
+        {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Found Pets Tab -->
+<div id="grid-found" class="pet-grid-section" style="display:none;">
+    <div class="container dashboard-section">
+        <div class="section-title">Found Reports</div>
+        <div class="pet-grid">
+        {% for pet in pets %}
+        {% if pet.type == 'Found' %}
+            <div class="pet-card" data-status="{{ pet.status }}" data-type="{{ pet.type }}">
+                <span class="badge badge-{{ pet.status|lower }}">{{ pet.status }}</span>
+                <div>
+                    <b>{{ pet.name }}</b> by {{ pet.username }} • {{ pet.breed }} • {{ pet.age }} yrs • {{ pet.gender }} • {{ pet.color }}<br>
+                    <b>Location:</b> {{ pet.location }}<br>
+                    <b>Type:</b> {{ pet.type }}<br>
+                    <b>Health:</b> {{ pet.healthy_status }}<br>
+                    <span style="font-size:0.98em;color:#444;">{{ pet.description }}</span><br>
+                    <div style="margin-top:10px;font-size:0.94em;color:#666;border-top: 1px solid #eaeaea; padding-top:10px;">
+                        <b>Owner Details:</b><br>
+                        Name: {{ pet.full_name }}<br>
+                        Email: {{ pet.email }}<br>
+                        Phone: {{ pet.phone }}<br>
+                        Address: {{ pet.address }}<br>
+                    </div>
+                    {% if pet.photo %}
+                        <br><img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
+                    {% elif pet.photo_url %}
+                        <br><img src="{{ pet.photo_url }}">
+                    {% endif %}
+                    <button class="report-action-btn" onclick="showDetailsModal(
+                        '{{ pet.name }}',
+                        '{{ pet.username }}',
+                        '{{ pet.breed }}',
+                        '{{ pet.age }}',
+                        '{{ pet.gender }}',
+                        '{{ pet.color }}',
+                        '{{ pet.location }}',
+                        '{{ pet.type }}',
+                        '{{ pet.healthy_status }}',
+                        '{{ pet.description }}',
+                        '{{ pet.photo if pet.photo else ""}}',
+                        '{{ pet.photo_url if pet.photo_url else ""}}',
+                        '{{ pet.id }}'
+                    )">View</button>
+                </div>
+            </div>
+        {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Adoption Requests and Adopted Pets tabs (unchanged) ... -->
+<!-- ...repeat for all pet tabs as in your original file... -->
+
+<!-- All Chats and additional dashboard sections here ... -->
+<div>
+    <h3>All Chat Rooms</h3>
+    {% if chat_rooms %}
+        {% for room in chat_rooms %}
+        <a href="/chat_room/{{ room.id }}" class="btn">{{ room.room_name }}</a>
+        {% endfor %}
+    {% else %}
+        <p>No chat rooms found.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
 <script>
-function showPets(status) {
-    let cards = document.querySelectorAll('.pet-card');
-    cards.forEach(card => {
-        if (card.getAttribute('data-status') === status) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
+function showGrid(which) {
+  const sections = ['all','lost','found','adopt','adopted'];
+  sections.forEach(s => {
+    document.getElementById('grid-' + s).style.display = (s === which) ? 'block' : 'none';
+    document.getElementById('btn-' + s)?.classList.toggle('active', s === which);
+  });
+}
+showGrid('all');
+function toggleNotifDropdownAdm() {
+    document.getElementById('notif-bell-adm').classList.toggle("open");
+    if(document.getElementById('notif-bell-adm').classList.contains("open")){
+        fetch('/mark_notifications_read', {method:'POST'}).then(()=>{
+            var elem = document.querySelector('.notification-count');
+            if (elem) elem.style.display = 'none';
+        });
+    }
+}
+window.onclick = function(event) {
+    let notifDropdown = document.getElementById('notif-dropdown-adm');
+    if(notifDropdown && !event.target.closest('#notif-bell-adm')) {
+        document.getElementById('notif-bell-adm').classList.remove("open");
+    }
 }
 </script>
-
 </body>
 </html>

@@ -2,122 +2,168 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Welcome to PetRescue</title>
+<title>PetRescue Login</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
 body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
+    font-family: Arial, sans-serif;
     background: url('{{ url_for('static', filename='images/user_background.jpg') }}') no-repeat center center fixed;
     background-size: cover;
     min-height: 100vh;
+}
+
+.center-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
 }
 
-.container {
-    background: rgba(255,255,255,0.9);
-    padding: 30px 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    width: 380px;
-    text-align: center;
-    animation: fadeIn 1s ease-in-out;
+.left-section {
+    width: 37%;
+    padding: 26px 28px;
+    background: rgba(255,255,255,0.93);
+    border-radius: 20px 0 0 20px;
+    margin-top: 6vh;
 }
 
-h1 {
-    color: #333;
-    margin-bottom: 20px;
+.right-section {
+    width: 63%;
+    padding: 33px 33px 12px 33px;
+    background: rgba(0,0,0,0.44);
+    border-radius: 0 20px 20px 0;
+    margin-top: 6vh;
+}
+
+.title {
+    color: #312b72;
     font-size: 2rem;
+    margin-bottom: 10px;
 }
 
-input[type="text"], input[type="email"], input[type="password"] {
-    width: 90%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+@media (max-width:1200px) {
+    .right-section, .left-section { width:100%; border-radius:20px; margin: 2vh 7vw; }
+    .center-container { flex-direction:column; }
 }
-
-button {
-    width: 90%;
-    padding: 10px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 6px;
-    background: #74ebd5;
-    color: #fff;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-button:hover {
-    background: #ACB6E5;
-}
-
-.quote {
-    font-style: italic;
-    color: #555;
-    margin: 15px 0;
-    min-height: 40px;
-    font-size: 1rem;
-}
-
-.section {
-    margin-top: 30px;
-}
-
-a {
-    color: #333;
-    text-decoration: none;
-    font-size: 0.9rem;
-}
-a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Welcome to PetRescue</h1>
-    <div class="quote" id="quote">"Saving one animal won't change the world, but it will change the world for that one animal."</div>
-    
-    <!-- User Login Form -->
-    <form method="POST" action="/login_user">
-        <input type="email" name="email" placeholder="Email" required><br>
-        <input type="password" name="password" placeholder="Password" required><br>
-        <input type="text" name="captcha" placeholder="Enter 1234" required><br>
-        <button type="submit">Login as User</button>
-    </form>
 
-    <!-- Admin Login Form -->
-    <form method="POST" action="/login_admin" style="margin-top:15px;">
-        <input type="email" name="email" placeholder="Admin Email" required><br>
-        <input type="password" name="password" placeholder="Password" required><br>
-        <input type="text" name="captcha" placeholder="Enter 1234" required><br>
-        <button type="submit">Login as Admin</button>
-    </form>
+<div class="center-container">
 
-    <div class="section">
-        <a href="/register">New User? Register</a>
+    <div class="left-section">
+
+        <h2 class="title">About PetRescue</h2>
+
+        <p><strong>Our Mission:</strong></p>
+        <p>Help lost pets reunite with owners and find safe homes for rescued pets.</p>
+
+        <!-- Animated Color Background Quote Banner section -->
+        <div class="quote-banner" id="quote-banner">
+            “Such agreeable friends—they ask no questions; they pass no criticisms.”
+        </div>
+
+        <p><strong>Easy. Secure. Real-time. Adopt and rescue now!</strong></p>
+
+        <div class="info-box" style="background:#f0f6fa; border-radius:10px; margin:28px 0 0 0; padding:13px 18px;">
+            <ul>
+                <li>Lost & Found Pet Reports</li>
+                <li>Verified adoptions and safe returns</li>
+                <li>Admin chat and real-time notifications</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="right-section">
+
+        <h1 style="color:#fff; margin-bottom:16px;">PetRescue Login</h1>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div style="text-align:center;margin-bottom:28px;">
+            <button class="action-btn" onclick="showForm('user')">User Login</button>
+            <button class="action-btn" onclick="showForm('admin')">Admin Login</button>
+            <button class="action-btn" onclick="window.location.href='/register'">Register</button>
+        </div>
+
+        <!-- User Login Form -->
+        <form class="login-form" id="user-form" method="POST" action="/login_user">
+            <label for="email">User Email</label>
+            <input type="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input type="password" name="password" required>
+
+            <!-- CAPTCHA Label (added) -->
+            <label for="captcha" style="font-weight:bold;">Captcha</label>
+            <input type="text" name="captcha" placeholder="Enter 1234" required>
+
+            <button type="submit">Login as User</button>
+        </form>
+
+        <!-- Admin Login Form -->
+        <form class="login-form" id="admin-form" method="POST" action="/login_admin">
+            <label for="email">Admin Email</label>
+            <input type="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input type="password" name="password" required>
+
+            <!-- CAPTCHA Label (added) -->
+            <label for="captcha" style="font-weight:bold;">Captcha</label>
+            <input type="text" name="captcha" placeholder="Enter 1234" required>
+
+            <button type="submit">Login as Admin</button>
+        </form>
+
+        <div style="margin-top:36px;">
+            <a href="/" style="color:#b4ceea;font-size:1em;">Back to Home</a>
+        </div>
+
+        <footer style="color:#bbb; font-size:0.96em; margin-top:34px; text-align: center;">
+            &copy; {{ 2025 }} PetRescue. All rights reserved.
+        </footer>
+
     </div>
 </div>
 
+
 <script>
-// Rotating quotes every 3 seconds
+// Show/hide forms as before
+function showForm(type){
+    document.getElementById('user-form').style.display = (type=='user') ? 'block' : 'none';
+    document.getElementById('admin-form').style.display = (type=='admin') ? 'block' : 'none';
+}
+
+// Rotating, color-animated quote (animated text in color box, preserves spacing)
 const quotes = [
-    "\"Saving one animal won't change the world, but it will change the world for that one animal.\"",
-    "\"Until one has loved an animal, a part of one's soul remains unawakened.\"",
-    "\"Animals are such agreeable friends—they ask no questions; they pass no criticisms.\"",
-    "\"Adopting a pet saves two lives — yours and theirs.\""
+    "Such agreeable friends—they ask no questions; they pass no criticisms.",
+    "Saving one animal won't change the world, but it will change the world for that one animal.",
+    "Adopting a pet saves two lives—yours and theirs.",
+    "Every pet deserves a loving home.",
+    "Until one has loved an animal, a part of one's soul remains unawakened.",
+    "The best therapist has fur and four legs.",
+    "Kindness to animals builds a kinder world.",
+    "In talk by adding court, E court, Ebo court."
 ];
 let index = 0;
 setInterval(() => {
-    document.getElementById('quote').innerText = quotes[index];
+    document.getElementById('quote-banner').innerText = quotes[index];
     index = (index + 1) % quotes.length;
-}, 3000);
+}, 3500);
+
+// By default, show user login form.
+showForm('user');
 </script>
 
 </body>

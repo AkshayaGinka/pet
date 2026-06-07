@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat with Admin - PetRescue</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+body {
+    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+.chat-container {
+    max-width: 800px;
+    margin: 20px auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 85vh;
+}
+.chat-header {
+    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.chat-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+.chat-header a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    transition: 0.3s;
+}
+.chat-header a:hover {
+    background: rgba(255,255,255,0.3);
+}
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f9f9f9;
+}
+.message {
+    display: flex;
+    margin-bottom: 15px;
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+.message.sent { justify-content: flex-end; }
+.message.received { justify-content: flex-start; }
+.message-bubble {
+    max-width: 60%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    position: relative;
+    word-wrap: break-word;
+}
+.message.sent .message-bubble {
+    background: #3fb950;
+    color: white;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 10px #665afc34;
+}
+.message.received .message-bubble {
+    background: #f4f8fb;
+    color: #333;
+    border: 1px solid #d4deed;
+    border-bottom-left-radius: 4px;
+}
+.message-sender {
+    font-weight: bold;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+.message.sent .message-sender { color: rgba(255,255,255,0.93);}
+.message.received .message-sender { color: #74ebd5;}
+.message-time {
+    font-size: 0.75rem; margin-top: 4px; opacity: 0.7;
+}
+.chat-input-area {
+    padding: 20px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+}
+#messageInput {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    outline: none;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+#messageInput:focus {
+    border-color: #74ebd5;
+    box-shadow: 0 0 8px rgba(116, 235, 213, 0.3);
+}
+#sendBtn {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+#sendBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(116, 235, 213, 0.4);
+}
+.empty-state {
+    text-align: center;
+    color: #999;
+    padding: 40px;
+    font-size: 1.1rem;
+}
+/* Unified green badge (if badge used in chat UI) */
+.green-count, .notification-count {
+    background: #3fb950 !important; 
+    color: #fff !important;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>💬 Chat with Admin</h2>
+        <form method="post" action="/user_chat" style="margin-right:10px;display:inline-block;">
+            <select name="target_admin" id="target_admin" style="padding:8px 16px;border-radius:8px;border:none;font-weight:bold;">
+                <option value="">-- Select Admin --</option>
+                {% for admin in admins %}
+                <option value="{{ admin.id }}" {% if session.get('chat_admin_id') and admin.id == session.get('chat_admin_id')|int %}selected{% endif %}>{{ admin.username }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" style="padding:6px 13px;border-radius:8px;border:none;background:#3fb950;color:white;font-weight:bold;cursor:pointer;">Start</button>
+        </form>
+        <a href="/user_dashboard">← Back to Dashboard</a>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        {% if messages %}
+            {% for msg in messages %}
+            <div class="message {% if msg.sender_type == 'user' %}sent{% else %}received{% endif %}">
+                <div class="message-bubble">
+                    <div class="message-sender">{% if msg.sender_type == 'user' %}You{% else %}Admin{% endif %}</div>
+                    <div>{{ msg.message }}</div>
+                    <div class="message-time">{{ msg.created_at.strftime('%I:%M %p') }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                👋 Start a conversation with the admin!
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Hidden input stores admin_id for JS send message -->
+    <input type="hidden" id="current_admin_id" value="{{ session['chat_admin_id'] if session.get('chat_admin_id') else '' }}" />
+    
+    <form method="POST" action="/user_chat" class="chat-input-area">
+
+    <input type="hidden" name="send_message" value="1">
+
+    <input
+        type="text"
+        id="messageInput"
+        name="message"
+        placeholder="Type your message..."
+        autocomplete="off"
+        required>
+
+    <button type="submit" id="sendBtn">Send</button>
+
+</form>
+
+
+
+</div>
+
+</body>
+</html>

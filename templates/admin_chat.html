@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Chat - PetRescue</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+body {
+    background: url('{{ url_for('static', filename='images/admin_background.jpg') }}') no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+.chat-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    overflow: hidden;
+    height: 85vh;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.chat-header a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+.chat-header a:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.users-list {
+    padding: 20px;
+}
+
+.user-card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.user-card:hover {
+    border-color: #667eea;
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.user-card strong {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.user-card .email {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.unread-badge {
+    display: inline-block;
+    background: #ff4757;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #999;
+    padding: 60px 20px;
+    font-size: 1.2rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h2>💬 User Messages</h2>
+        <a href="/admin_dashboard">← Back to Dashboard</a>
+    </div>
+
+    <div class="users-list">
+        {% if users %}
+            {% for user in users %}
+            <div class="user-card" onclick="window.location.href='/admin_chat/{{ user.id }}'">
+                <strong>{{ user.username }}</strong>
+                {% if user.unread_count > 0 %}
+                <span class="unread-badge">{{ user.unread_count }} new</span>
+                {% endif %}
+                <div class="email">{{ user.email }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div>No messages yet. Users will appear here when they start a conversation.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Blank lines can be added here if you want apparent length -->
+
+</body>
+</html>

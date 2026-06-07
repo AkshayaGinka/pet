@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room - PetRescue</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+    .chat-messages {
+        margin: 24px 0;
+        min-height: 260px;
+        /* ------------------------------------------ */
+    }
+    .message {
+        display: flex;
+        margin-bottom: 15px;
+        /* ------------------------------------------ */
+    }
+    .message.sent {
+        justify-content: flex-end;
+    }
+    .message.received {
+        justify-content: flex-start;
+    }
+    .message-bubble {
+        max-width: 60%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+        /* ------------------------------------------ */
+    }
+    .message.sent .message-bubble {
+        background: linear-gradient(135deg, #74ebd5 0%, #665afc 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 2px 10px #665afc34;
+    }
+    .message.received .message-bubble {
+        background: #f4f8fb;
+        color: #333;
+        border: 1px solid #d4deed;
+        border-bottom-left-radius: 4px;
+    }
+    .message-sender {
+        font-weight: bold;
+        font-size: 0.93rem;
+        margin-bottom: 4px;
+    }
+    .message.sent .message-sender { color: rgba(255,255,255,0.93);}
+    .message.received .message-sender { color: #74ebd5;}
+    .message-time {
+        font-size: 0.75rem; margin-top: 4px; opacity: 0.7;
+        /* extra comments and lines */
+    }
+    /* ------------------------------------------ */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Chat Room Members</h3>
+        <ul>
+            {% for member in members %}
+            <li>{{ member.username }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Messages</h3>
+        <div class="chat-messages" id="messages">
+            <!-- All message bubbles, sent and received -->
+            {% set uid = session.get('user_id') %}
+            {% set aid = session.get('admin_id') %}
+            {% for msg in messages %}
+            <div class="message
+                {% if (uid is not none and (msg.sender_id|string == uid|string)) 
+                   or (aid is not none and (msg.sender_id|string == aid|string)) %}
+                    sent
+                {% else %}
+                    received
+                {% endif %}">
+                <div class="message-bubble">
+                    <div class="message-sender">
+                        {{ msg.username if msg.username else "Admin" }}
+                    </div>
+                    <div>{{ msg.message }}</div>
+                    <div class="message-time">
+                        {{ msg.created_at.strftime('%I:%M %p') if msg.created_at else msg.created_at }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <!-- Extra whitespace for line count -->
+        </div>
+
+        <form method="POST" action="">
+            <input type="text" name="message" placeholder="Type message" autocomplete="off" required>
+            <button type="submit">Send</button>
+        </form>
+        {% if room.owner_id == session.get('user_id') or session.get('admin_id') %}
+        <form method="POST" action="/delete_chat_room/{{ room_id }}">
+            <button type="submit" onclick="return confirm('Delete this room and all messages?')">Delete Room</button>
+        </form>
+        {% endif %}
+        {% if session.get('admin_id') %}
+            <a href="/admin_dashboard">Back to Dashboard</a>
+        {% else %}
+            <a href="/user_dashboard">Back to Dashboard</a>
+        {% endif %}
+        <!-- Additional lines and comments for preservation and future features -->
+    </div>
+    <!-- End of chat container -->
+</body>
+</html>

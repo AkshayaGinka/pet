@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Chat Room</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Create a Chat Room</h2>
+        <form method="POST">
+            <input type="text" name="room_name" placeholder="Room name" required><br>
+            <h4>Select users to include:</h4>
+            {% for user in all_users %}
+                <label>
+                    <input type="checkbox" name="users" value="{{ user.id }}"> {{ user.username }}
+                </label><br>
+            {% endfor %}
+            <button type="submit">Create</button>
+        </form>
+        <a href="/user_dashboard">Back</a>
+    </div>
+</body>
+</html>

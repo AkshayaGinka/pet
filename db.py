@@ -4,6 +4,6 @@ def get_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="",      # keep empty for XAMPP default
+        password="123456",      # keep empty for XAMPP default
         database="pet_rescue_management"
     )

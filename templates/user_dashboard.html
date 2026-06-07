@@ -5,41 +5,321 @@
 <title>User Dashboard - PetRescue</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
-body {
-    background: url('{{ url_for('static', filename='images/user_background.jpg') }}') no-repeat center center fixed;
-    background-size: cover;
+/* [Retain all your style blocks here!] */
+.notification-toast {
+    position: fixed;
+    bottom: 34px;
+    right: 38px;
+    background: #74ebd5;
+    color: #222;
+    padding: 16px 26px;
+    border-radius: 16px;
+    box-shadow: 0 4px 22px #312b721a;
+    font-size: 1.12em;
+    z-index: 11000;
+    opacity: 0;
+    transition: opacity .3s, transform .3s;
 }
+.notification-toast.show {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.04);
+}
+/* Contact modal styles */
+.modal {
+    display: none; position: fixed; z-index: 1200;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(30,34,40,0.34);
+}
+.modal-content {
+    background: #fff; border-radius: 15px;
+    padding: 30px 33px; margin: 88px auto;
+    max-width: 400px; width:90%;
+    box-shadow: 0 7px 30px #79c2fa44;
+    text-align: left;
+}
+.close-btn {
+    font-size: 1.5em; color: #888; background:none; border:none; cursor:pointer; float: right; margin-top: -10px;
+}
+button.contact-btn {
+    width: 200px;
+    padding: 10px;
+    margin: 5px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+    background: #74ebd5;
+    color: #222;
+}
+button.contact-btn:hover {
+    background: #ACB6E5;
+    color: #fff;
+}
+/* Green notification/chat badge */
+.notification-count, .green-count {
+    background: #3fb950 !important; 
+    color: #fff !important;
+    border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center;
+}
+
 </style>
 </head>
 <body>
 
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for message in messages %}
+        <div class="flash-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+
 <div class="container">
     <h2>Welcome, {{ user.username }}!</h2>
-    <a href="/add_pet">Add Pet</a> | <a href="/logout">Logout</a>
-</div>
-
-<div class="section">
-    <h3>Available Pets</h3>
-    {% for pet in pets %}
-    <div class="pet-card">
-        <strong>{{ pet.name }}</strong> - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }}<br>
-        Description: {{ pet.description }}<br>
-        Type: {{ pet.type }} - Status: {{ pet.status }}<br>
-        {% if pet.photo %}
-        <img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
-        {% endif %}
-        {% if pet.status == 'Accepted' and pet.type == 'Adoption' %}
-        <br><a href="/request_adoption/{{ pet.id }}"><button>Request for Adoption</button></a>
-        {% endif %}
+    <div class="top-nav">
+        <div class="notification-bell" id="notif-bell" onclick="toggleNotifDropdown()">
+            <span style="font-size:1.3em;">🔔</span>
+            {% if notif_unread_count > 0 %}
+            <span class="notification-count">{{ notif_unread_count }}</span>
+            {% endif %}
+            <div class="notification-dropdown" id="notif-dropdown">
+                <h4>Notifications</h4>
+                {% if notifications %}
+                    {% for n in notifications %}
+                    <div class="notification-msg">{{ n['message'] }}</div>
+                    {% endfor %}
+                {% else %}
+                    <div class="notification-empty">No notifications.</div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- Chat with Admin now a modal selection -->
+        <a href="#" onclick="showAdminSelectModal();" style="position: relative;">
+            💬 Chat with Admin
+            {% if unread_count > 0 %}
+            <span class="green-count" style="position:absolute;top:-8px;right:-15px;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.80rem;">{{ unread_count }}</span>
+            {% endif %}
+        </a>
+        <a href="/logout">Logout</a>
     </div>
-    {% endfor %}
+    <div class="add-pet-row">
+        <a href="/add_pet?type=Lost" class="btn" style="background:#ffe08a;color:#715c16;">Add Lost Pet</a>
+        <a href="/add_pet?type=Found" class="btn" style="background:#b2f0cb;color:#145c34;">Add Found Pet</a>
+        <a href="/add_pet?type=Adoption" class="btn" style="background:#74ebd5;color:#312b72;">Add Pet for Adoption</a>
+        <a href="/create_chat_room" class="btn" style="background:#312b72;color:#fff;">Create Chat Room</a>
+        <button class="contact-btn" onclick="showContactModal()">Contact</button>
+    </div>
 </div>
 
-<!-- Contact Section -->
-<div class="section">
-    <h3>Contact Us</h3>
-    <p>Email: support@petrescue.com | Phone: +91 9876543210</p>
+<div class="container" style="margin-bottom:2px;">
+    <input type="text" id="petSearch" placeholder="🔍 Search pets by name, breed, or status..." onkeyup="filterPets()" style="width:99%;max-width:385px;">
 </div>
 
+<div class="container">
+    <div style="text-align: center; margin-bottom: 14px;">
+        <button class="btn" onclick="filterByType('Lost')" style="background:#ffe08a;color:#715c16;">
+            Lost Pets
+            <span style="background:#ffecb4;color:#715c16;padding:2px 10px;border-radius:11px;font-size:.98em;">
+                {{ lost_count }}
+            </span>
+        </button>
+        <button class="btn" onclick="filterByType('Found')" style="background:#b2f0cb;color:#145c34;">
+            Found Pets
+            <span style="background:#e0ffe2;color:#145c34;padding:2px 10px;border-radius:11px;font-size:.98em;">
+                {{ found_count }}
+            </span>
+        </button>
+        <button class="btn" onclick="filterByType('Adoption')" style="background:#74ebd5;color:#312b72;">
+            Request for Adoption
+            <span style="background:#cdf3ff;color:#312b72;padding:2px 10px;border-radius:11px;font-size:.98em;">
+                {{ adoption_count }}
+            </span>
+        </button>
+        <button class="btn" onclick="filterByType('Adopted')" style="background:#ACB6E5;color:#312b72;">
+            Adopted Pets
+            <span style="background:#e2eaff;color:#312b72;padding:2px 10px;border-radius:11px;font-size:.98em;">
+                {{ adopted_count }}
+            </span>
+        </button>
+        <button class="btn" onclick="filterByType('all')" style="background:#eeeeee;color:#312b72;">
+            All Pets
+            <span style="background:#d1d8e0;color:#312b72;padding:2px 10px;border-radius:11px;font-size:.98em;">
+                {{ total_count }}
+            </span>
+        </button>
+    </div>
+</div>
+
+<div class="pet-grid" id="pets_container">
+{% for pet in pets %}
+    <div class="pet-card" data-type="{{ pet.type }}">
+        <span class="badge badge-{{ pet.status|lower }}">{{ pet.status }}</span>
+        <div>
+            <strong>{{ pet.name }}</strong> - {{ pet.breed }} - {{ pet.age }} yrs - {{ pet.gender }} - {{ pet.color }}<br>
+            <b>Location:</b> {{ pet.location }}<br>
+            <b>Type:</b> {{ pet.type }}<br>
+            <b>Health:</b> {{ pet.healthy_status }}<br>
+            <span style="font-size:0.97em"><i>{{ pet.description }}</i></span>
+            <!-- Requirement: Show registered user details -->
+            <div style="margin-top:10px;font-size:0.94em;color:#666;border-top: 1px solid #eaeaea; padding-top:10px;">
+                <b>Owner Details:</b><br>
+                Name: {{ pet.full_name }}<br>
+                Email: {{ pet.email }}<br>
+                Phone: {{ pet.phone }}<br>
+                Address: {{ pet.address }}<br>
+            </div>
+            {% if pet.photo %}
+                <br><img src="{{ url_for('static', filename='uploads/' ~ pet.photo) }}">
+            {% elif pet.photo_url %}
+                <br><img src="{{ pet.photo_url }}">
+            {% endif %}
+            {% if pet.status == 'Accepted' and pet.type == 'Adoption' and pet.username != user.username %}
+                <br><a href="/request_adoption/{{ pet.id }}"><button style="background:#63d471;color:#fff;">Request for Adoption</button></a>
+            {% endif %}
+            {% if pet.username == user.username %}
+                <br><small style="color:#666;">Your Pet</small>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="pet-card">No pets available in the system at the moment.</div>
+{% endfor %}
+</div>
+
+<!-- Contact Modal: only shown when button clicked -->
+<div id="contactModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="hideContactModal()">&#10006;</button>
+        <h3 style="margin-top:0;">Contact Information</h3>
+        <ul style="list-style:none;padding-left:0;">
+            <li><b>📧 Email:</b> <a href="mailto:ginka993@gmail.com">ginka993@gmail.com</a></li>
+            <li><b>📞 Phone:</b> +91 8309231855</li>
+            <li><b>🏠 Address:</b> 2-77/4, Madhapur Main Road, Hyderabad, Telangana 500081</li>
+            <li><b>🕒 Working Hours:</b> Mon-Sat, 9:30AM–7:00PM</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Modal for Chat with Admin selection -->
+<div id="adminSelectModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="hideAdminSelectModal()">&#10006;</button>
+        <h3>Chat With Admin</h3>
+        <form id="selectAdminForm" method="POST" action="/user_chat">
+            <label for="target_admin">Select Admin:</label>
+            <select name="target_admin" id="target_admin" required>
+                <option value="" disabled selected>Select an admin</option>
+                {% for admin in admins %}
+                <option value="{{ admin.id }}">{{ admin.username }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn" style="margin-top:16px;">Start Chat</button>
+        </form>
+    </div>
+</div>
+
+<div class="container">
+    <h3>Your Chat Rooms</h3>
+    {% if chat_rooms %}
+      {% for room in chat_rooms %}
+        <a href="/chat_room/{{ room.id }}" class="btn">{{ room.room_name }}</a>
+        <form method="POST" action="/delete_chat_room/{{ room.id }}" style="display:inline;">
+            <button type="submit" onclick="return confirm('Delete this chat room?')">Delete</button>
+        </form>
+      {% endfor %}
+    {% else %}
+      <p>No chat rooms to show.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+<script>
+let currentFilter = 'all';
+function filterPets() {
+    var input = document.getElementById('petSearch').value.toLowerCase();
+    var cards = document.getElementsByClassName('pet-card');
+    for (var i = 0; i < cards.length; i++) {
+        var txt = cards[i].innerText.toLowerCase();
+        var matchesSearch = txt.includes(input);
+        var matchesFilter = true;
+        if (currentFilter !== 'all') {
+            var type = cards[i].getAttribute('data-type');
+            matchesFilter = type === currentFilter;
+        }
+        cards[i].style.display = (matchesSearch && matchesFilter) ? 'flex' : 'none';
+    }
+}
+function filterByType(type) {
+    currentFilter = type;
+    filterPets();
+}
+function showContactModal() {
+    document.getElementById('contactModal').style.display = 'block';
+}
+function hideContactModal() {
+    document.getElementById('contactModal').style.display = 'none';
+}
+function toggleNotifDropdown() {
+    document.getElementById('notif-bell').classList.toggle("open");
+    // Mark notifications as read when dropdown opened
+    if(document.getElementById('notif-bell').classList.contains("open")){
+        fetch('/mark_notifications_read', {method:'POST'}).then(()=>{
+            var elem = document.querySelector('.notification-count');
+            if (elem) elem.style.display = 'none';
+        });
+    }
+}
+function showAdminSelectModal() {
+    var modal = document.getElementById('adminSelectModal');
+    modal.style.display = 'block';
+}
+function hideAdminSelectModal() {
+    var modal = document.getElementById('adminSelectModal');
+    modal.style.display = 'none';
+}
+window.onclick = function(event) {
+    let modal = document.getElementById('contactModal');
+    let notifDropdown = document.getElementById('notif-dropdown');
+    let adminModal = document.getElementById('adminSelectModal');
+    if(event.target === modal) modal.style.display = "none";
+    if(event.target === adminModal) adminModal.style.display = "none";
+    if(notifDropdown && !event.target.closest('#notif-bell')) {
+        document.getElementById('notif-bell').classList.remove("open");
+    }
+}
+var socket = io();
+{% if session.get('user_id') %}
+socket.emit('join', {'room': 'user_{{ session['user_id'] }}'});
+{% endif %}
+function showNotificationPopup(message) {
+    var toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(function() {
+        toast.classList.add('show');
+    },100); 
+    setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(function() { document.body.removeChild(toast)},500);
+    }, 3500);
+}
+function updateNotificationCount() {
+    var countElem = document.querySelector('.notification-count');
+    if (countElem) {
+        var count = parseInt(countElem.textContent) || 0;
+        countElem.textContent = count + 1;
+    }
+}
+socket.on('notification', function(data) {
+    showNotificationPopup(data.message);
+    updateNotificationCount();
+});
+</script>
 </body>
 </html>

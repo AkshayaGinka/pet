@@ -2,173 +2,202 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Pet Adoption & Rescue Management</title>
+<title>PetRescue - Adoption & Rescue Portal</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <style>
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    display: flex;
     min-height: 100vh;
+    font-family: 'Segoe UI', Arial, sans-serif;
     background: url('{{ url_for('static', filename='images/user_background.jpg') }}') no-repeat center center fixed;
     background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
-/* Left about section */
-.about-section {
-    width: 35%;
-    background: rgba(255,255,255,0.9);
-    padding: 30px;
-    animation: slideInLeft 1s ease-out;
+.container-home {
+    display: flex;
+    flex-direction: row;
+    gap: 44px;
+    width: 100%;
+    max-width: 1100px;
+    justify-content: center;
 }
-.about-section h2 {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    color: #333;
+.about-block {
+    max-width: 410px;
+    width: 100%;
+    padding: 38px 34px 30px 34px;
+    background: rgba(20,27,34,0.38);
+    border-radius: 22px;
+    box-shadow: 0 8px 32px rgba(40,60,110,0.09);
+    backdrop-filter: blur(2px);
 }
-.about-section p {
-    margin: 10px 0;
-    color: #555;
+.about-block h1 {
+    color: #f0f8fb;
+    font-size: 2.1rem;
+    margin-bottom: 14px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
-
-/* Right login section */
-.login-section {
-    width: 65%;
+.about-block p, .about-block ul, .about-block .vision {
+    color: #e4f2fa;
+    font-size: 1.09em;
+}
+.feature-list {
+    margin: 8px 0 0 0;
+    padding: 0 0 0 18px;
+}
+.feature-list li { margin-bottom: 8px; }
+.vision {
+    color: #d6f0ef;
+    margin: 14px 0 0 0;
+    font-size: 1em;
+    font-style: italic;
+    line-height: 1.6;
+}
+@media (max-width: 900px) {
+    .container-home { flex-direction: column; align-items: center; gap: 30px;}
+    .about-block, .login-block { max-width: 98vw; }
+    .about-block { padding: 22px 7vw 12px 7vw;}
+    .login-block { padding: 22px 7vw 18px 7vw;}
+}
+.login-block {
+    min-width: 280px;
+    padding: 38px 34px 29px 34px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 22px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.4);
-    padding: 30px;
-    animation: fadeIn 1s ease-in;
+    box-shadow: 0 8px 30px rgba(60,100,160,0.13);
+    position: relative;
 }
-.login-section h1 {
-    color: #fff;
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-/* Buttons for user/admin/register */
-button.action-btn {
-    width: 200px;
-    padding: 10px;
-    margin: 5px;
-    font-size: 1rem;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
+.login-block h2 {
+    color: #3670b2;
+    font-size: 1.32rem;
+    margin-bottom: 18px;
+    letter-spacing: 0.01em;
     font-weight: bold;
 }
-button.action-btn:hover {
-    background: #ACB6E5;
-    color: #fff;
+.login-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 4px;
+    margin-bottom: 18px;
 }
-
-/* Login forms hidden initially */
+button.action-btn, .login-btns a {
+    background: linear-gradient(135deg,#3fb950 0%, #5c7efd 100%);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    padding: 13px 0;
+    font-size: 1.09rem;
+    font-weight: 600;
+    width: 240px;
+    cursor: pointer;
+    margin: 0 auto;
+    text-decoration: none;
+    text-align: center;
+    transition: 0.13s;
+    box-shadow: 0 3px 10px #5c7efd22;
+}
+button.action-btn:hover, .login-btns a:hover {
+    background: linear-gradient(120deg, #13b67f 0%, #728ad2 100%);
+    transform: scale(1.025);
+}
+.login-block .quote {
+    color: #232e36;
+    margin-top: 24px;
+    font-size: 1em;
+    text-align: center;
+    letter-spacing: 0.01em;
+    font-style: italic;
+}
 form.login-form {
     display: none;
-    margin-top: 20px;
-    background: rgba(255,255,255,0.9);
-    padding: 20px;
-    border-radius: 10px;
-    width: 300px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 3px 10px #aaf1fc22;
+    border-radius: 15px;
+    margin-top: 12px;
+    padding: 22px 14px 10px 14px;
+    width: 223px;
 }
 form.login-form input {
-    width: 90%;
-    padding: 8px;
+    width: 93%;
+    padding: 7px;
     margin: 8px 0;
     border-radius: 6px;
     border: 1px solid #ccc;
+    font-size: 1em;
 }
-
-/* Rotating quotes */
-.quote {
+form.login-form button {
+    width: 100%;
     color: #fff;
-    font-style: italic;
-    margin: 15px 0;
-    min-height: 40px;
-    font-size: 1rem;
-    text-align: center;
-    animation: fadeQuote 2s ease-in-out infinite;
+    background: linear-gradient(135deg,#3fb950 0%, #5c7efd 100%);
+    font-size: 1.07rem;
+    border: none;
+    border-radius: 15px;
+    padding: 9px 0;
+    margin-top: 10px;
+    cursor: pointer;
+    font-weight: bold;
 }
-
-/* Animations */
-@keyframes slideInLeft {
-    from { transform: translateX(-100%); opacity: 0;}
-    to { transform: translateX(0); opacity: 1;}
-}
-@keyframes fadeIn {
-    from { opacity: 0;}
-    to { opacity: 1;}
-}
-@keyframes fadeQuote {
-    0%,100% {opacity: 0;}
-    50% {opacity: 1;}
+form.login-form button:hover {
+    background: linear-gradient(120deg, #13b67f 0%, #728ad2 100%);
 }
 </style>
 </head>
 <body>
-
-<!-- Left About Section -->
-<div class="about-section">
-    <h2>About PetRescue</h2>
-    <p><strong>Our Mission:</strong> Help lost pets reunite with their owners and facilitate adoption of rescued pets.</p>
-    <p><strong>Objective:</strong> Create a seamless platform to report lost/found pets and manage adoption requests efficiently.</p>
-    <p><strong>Vision:</strong> A world where every pet has a safe home and caring owner.</p>
-</div>
-
-<!-- Right Login Section -->
-<div class="login-section">
-    <h1>Pet Adoption & Rescue Management</h1>
-    <div class="quote" id="quote">"Saving one animal won't change the world, but it will change the world for that one animal."</div>
-
-    <!-- Action Buttons -->
-    <div>
-        <button class="action-btn" onclick="showForm('user')">User Login</button>
-        <button class="action-btn" onclick="showForm('admin')">Admin Login</button>
-        <button class="action-btn" onclick="window.location.href='/register'">Register</button>
+<div class="container-home">
+    <div class="about-block">
+        <h1>Welcome to PetRescue</h1>
+        <p>
+            <b>PetRescue</b> is the fast, friendly way to report lost or found pets, discover adoption opportunities, and get help—all in one place. It’s built for safety, connection, and hope, with support from kind-hearted people and proactive admins.
+        </p>
+        <ul class="feature-list">
+            <li>• Post &amp; find lost/found pets instantly</li>
+            <li>• Apply to adopt, manage requests</li>
+            <li>• Live chat &amp; notification badges</li>
+            <li>• Simple, secure, mobile-ready</li>
+        </ul>
+        <div class="vision">
+            For every animal, a safe home.<br>
+            For every user, trusted help.
+        </div>
     </div>
-
-    <!-- User Login Form -->
-    <form class="login-form" id="user-form" method="POST" action="/login_user">
-        <input type="email" name="email" placeholder="Email" required><br>
-        <input type="password" name="password" placeholder="Password" required><br>
-        <input type="text" name="captcha" placeholder="Enter 1234" required><br>
-        <button type="submit">Login as User</button>
-    </form>
-
-    <!-- Admin Login Form -->
-    <form class="login-form" id="admin-form" method="POST" action="/login_admin">
-        <input type="email" name="email" placeholder="Admin Email" required><br>
-        <input type="password" name="password" placeholder="Password" required><br>
-        <input type="text" name="captcha" placeholder="Enter 1234" required><br>
-        <button type="submit">Login as Admin</button>
-    </form>
+    <div class="login-block">
+        <h2>Start Your Journey</h2>
+        <div class="login-btns">
+            <button class="action-btn" onclick="showForm('user')">User Login</button>
+            <button class="action-btn" onclick="showForm('admin')">Admin Login</button>
+            <a href="/register">Register New User</a>
+        </div>
+        <!-- HIDDEN LOGIN FORMS -->
+        <form class="login-form" id="user-form" method="POST" action="/login_user">
+            <input type="email" name="email" placeholder="Email" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <input type="text" name="captcha" placeholder="Enter Captcha: 1234" required><br>
+            <button type="submit">Login as User</button>
+        </form>
+        <form class="login-form" id="admin-form" method="POST" action="/login_admin">
+            <input type="email" name="email" placeholder="Admin Email" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <input type="text" name="captcha" placeholder="Enter Captcha: 1234" required><br>
+            <button type="submit">Login as Admin</button>
+        </form>
+        <div class="quote">
+            "Saving one animal won’t change the world,<br>
+            but it will change the world for that one animal."
+        </div>
+    </div>
 </div>
-
 <script>
-// Show the selected login form
 function showForm(type){
     document.getElementById('user-form').style.display = (type=='user') ? 'block' : 'none';
     document.getElementById('admin-form').style.display = (type=='admin') ? 'block' : 'none';
 }
-
-// Rotating quotes every 3 seconds
-const quotes = [
-    "\"Saving one animal won't change the world, but it will change the world for that one animal.\"",
-    "\"Until one has loved an animal, a part of one's soul remains unawakened.\"",
-    "\"Adopting a pet saves two lives — yours and theirs.\"",
-    "\"Animals are such agreeable friends—they ask no questions; they pass no criticisms.\"",
-    "\"Every pet deserves a loving home.\""
-];
-let index = 0;
-setInterval(() => {
-    document.getElementById('quote').innerText = quotes[index];
-    index = (index + 1) % quotes.length;
-}, 3000);
 </script>
-
 </body>
 </html>
